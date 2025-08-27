@@ -16,7 +16,7 @@ ARI_FALCON = []
 NMI_FALCON = []
 silhouette_FALCON = []
 
-clusterer_FALCON = FALCON(X,y,RBFKernel(0.25), RBFKernel(0.25))
+clusterer_FALCON = FALCON(X,y,RBFKernel(sigma1), RBFKernel(sigma2))
 clustering_FALCON, intermediate_clustering = clusterer_FALCON.cluster(n=max_budget,k_proto=2, train_indices = None)
     
 ARI_FALCON, NMI_FALCON, silhouette_FALCON = compute_score(intermediate_clustering,max_budget)

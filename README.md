@@ -9,6 +9,10 @@ FALCON is a novel active constraint-based clustering method that integrates the 
 ![alt text](https://github.com/VincentBlase/FALCON/blob/main/images/Illustration_FALCON.png?raw=true)
 
 
+```
+
+```
+
 ## Installation
 We recommand to download files on python 3.10.4 (Should work with other versions)
 

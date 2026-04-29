@@ -77,8 +77,23 @@ class FALCON:
 
         if len(protos_inds) > 2 :
             self.generate_link_cluster(protos_inds)
+
+        y_pred = closest_centers_indices.copy()
+
+        #Generate final partition
+        
+        value_max = max(y_pred)
+        for i,j in self.cluster_bags.items():
+            for k in j :
+                label = y_pred[k]
+                for l in range(len(y_pred)):
+                    if y_pred[l] == label:
+                        y_pred[l] = i + value_max *2
                     
-                
+        values_labels = [y_pred[x] for x in protos_inds]
+        for i,j in zip(values_labels,protos_inds) :
+            y_pred[y_pred==i] = self.labels[j]
+        self.intermediate_cluster[self.budget] = y_pred        
 
         # While budget not reach
         cpt = 0
@@ -88,7 +103,7 @@ class FALCON:
 
             criti_inds =  self.calculCriticism(protos_inds, len(protos_inds) + 1 , train_indices)
             # Find cluster with most critiscism
-            cluster_points, nb_criti_cluster, protos_inds, train_indices_cluster = self.find_cluster(centers, criti_inds, protos_inds, closest_centers_indices, train_indices = train_indices)
+            cluster_points, nb_criti_cluster, train_indices_cluster = self.find_cluster(centers, criti_inds, protos_inds, closest_centers_indices, train_indices = train_indices)
 
             # If cluster larger then number of critiscism
             if len(train_indices_cluster) > nb_criti_cluster :
@@ -100,8 +115,8 @@ class FALCON:
                     nb_criti_cluster_bool_global = True
                 
                     
-                        
-                protos_inds_cluster = self.calcul_cluster(cluster_points, n_proto = nb_criti_cluster + 1, train_indices = train_indices_cluster, local = True) # Calculate local cluster
+                protos_inds_cluster = np.argwhere(train_indices_cluster == np.intersect1d(protos_inds, train_indices_cluster))[0]        
+                protos_inds_cluster = self.calcul_cluster(cluster_points, n_proto = nb_criti_cluster, train_indices = np.arange(cluster_points.shape[0]), local = True, protos_inds_cluster = protos_inds_cluster) # Calculate local cluster
 
 
                 protos_inds = np.append(protos_inds, np.concatenate([np.where(np.all(self.X == row, axis=1))[0] for row in cluster_points[protos_inds_cluster]], axis=0))
@@ -124,19 +139,22 @@ class FALCON:
                             y_pred[l] = i + value_max *2
 
             
-            self.intermediate_cluster[self.budget] = y_pred
+            values_labels = [y_pred[x] for x in protos_inds]
+            for i,j in zip(values_labels,protos_inds) :
+                y_pred[y_pred==i] = self.labels[j]
+            self.intermediate_cluster[self.budget] = y_pred 
 
            
         while len(protos_inds) < len(train_indices) and self.budget < n :
             
             criti_inds =  self.calculCriticism(protos_inds, 1 , train_indices)
             # Find cluster with most critiscism
-            cluster_points, nb_criti_cluster, protos_inds, train_indices_cluster = self.find_cluster(centers, criti_inds, protos_inds, closest_centers_indices, train_indices = train_indices)
+            cluster_points, nb_criti_cluster, train_indices_cluster = self.find_cluster(centers, criti_inds, protos_inds, closest_centers_indices, train_indices = train_indices)
 
             # If cluster larger then number of critiscism
             if len(train_indices_cluster) > nb_criti_cluster :
-                      
-                protos_inds_cluster = self.calcul_cluster(cluster_points, n_proto = nb_criti_cluster + 1, train_indices = train_indices_cluster, local = True) # Calculate local cluster
+                protos_inds_cluster = np.argwhere(train_indices_cluster == np.intersect1d(protos_inds, train_indices_cluster))[0]
+                protos_inds_cluster = self.calcul_cluster(cluster_points, n_proto = nb_criti_cluster, train_indices = np.arange(cluster_points.shape[0]), local = True, protos_inds_cluster = protos_inds_cluster) # Calculate local cluster
 
 
                 protos_inds = np.append(protos_inds, np.concatenate([np.where(np.all(self.X == row, axis=1))[0] for row in cluster_points[protos_inds_cluster]], axis=0))
@@ -163,6 +181,9 @@ class FALCON:
                         if y_pred[l] == label:
                             y_pred[l] = i + value_max *2
 
+            values_labels = [y_pred[x] for x in protos_inds]
+            for i,j in zip(values_labels,protos_inds) :
+                y_pred[y_pred==i] = self.labels[j]
             self.intermediate_cluster[self.budget] = y_pred
 
 
@@ -174,6 +195,9 @@ class FALCON:
                     if closest_centers_indices[l] == label:
                         closest_centers_indices[l] = i + value_max *2
              
+        values_labels = [closest_centers_indices[x] for x in protos_inds]
+        for i,j in zip(values_labels,protos_inds) :
+            closest_centers_indices[closest_centers_indices==i] = self.labels[j]
         self.intermediate_cluster[self.budget] = closest_centers_indices
         
         return closest_centers_indices, self.intermediate_cluster
@@ -230,9 +254,9 @@ class FALCON:
 
         ## Select cluster with most critiscism
         cluster_points = self.X[closest_centers_indices == best_indices]
-        train_indices_cluster = np.where(np.isin(np.where(closest_centers_indices == best_indices)[0], train_indices))[0]
+        train_indices_cluster = train_indices[closest_centers_indices == best_indices]
 
-        return cluster_points, nb_criti_cluster, protos_inds, train_indices_cluster
+        return cluster_points, nb_criti_cluster, train_indices_cluster
 
 
     def calculCriticism(self, protos_inds, nb_criti, train_indices):
@@ -318,7 +342,7 @@ class FALCON:
 
         return centers, closest_centers_indices
 
-    def calcul_cluster(self,cluster_points, n_proto, train_indices, local):
+    def calcul_cluster(self,cluster_points, n_proto, train_indices, local, protos_inds_cluster = None):
         """
         Calcul clustering from critiscm and prototype indices
         
@@ -339,7 +363,7 @@ class FALCON:
         if local :
             
             critic = MMDCritic(cluster_points, self.prototype_kernel, self.criticism_kernel)
-            protos_inds = critic.select_prototypes(n_proto,train_indices = train_indices)
+            protos_inds = critic.select_prototypes(n_proto,train_indices = train_indices, proto_inds = protos_inds_cluster)
             return protos_inds
             
         else :

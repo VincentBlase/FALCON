@@ -13,7 +13,7 @@ The figure.1 illustrates how criticisms are used to identify uncertain regions i
 
 Figure.2 illustrates a full iterative process of the Falcon method.
 
-![alt text](https://github.com/VincentBlase/FALCON/blob/main/Image/Illustration_all.png?raw=true)
+![alt text](https://github.com/VincentBlase/FALCON/blob/main/Image/Ilustration_all.png?raw=true)
 
 
 

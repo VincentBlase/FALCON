@@ -21,8 +21,8 @@ X,y = open_dataset(name)
 print('DATASET : ', name)
 
 max_budget = 200
-sigma1 = 0.1
-sigma2 = 0.1
+sigma1 = 0.25
+sigma2 = 0.25
 
 ARI_FALCON = []
 NMI_FALCON = []

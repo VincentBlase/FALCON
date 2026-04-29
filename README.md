@@ -6,7 +6,15 @@
 ## Description
 FALCON is a novel active constraint-based clustering method that integrates the strengths of prototype-based summarization and criticism-based refinement to dynamically select the best super-instances.
 
-![alt text](https://github.com/VincentBlase/FALCON/blob/main/Image/illustration_all.png?raw=true)
+![alt text](https://github.com/VincentBlase/FALCON/blob/main/Image/Illustration_all.png?raw=true)
+
+The figure.1 illustrates how criticisms are used to identify uncertain regions inside a 2D synthetic dataset with different scales. The criticisms highlight regions of the distribution where the prototype distribution fails, these regions typically require refinement. Note that the distributions are not normalized here in order to visualize them clearly.
+
+![alt text](https://github.com/VincentBlase/FALCON/blob/main/Image/Illustration_1.png?raw=true)
+
+
+
+![alt text](https://github.com/VincentBlase/FALCON/blob/main/Image/Algorithm.png?raw=true)
 
 
 ```

@@ -28,7 +28,7 @@ class MMDCritic:
         self.prot_K = self.prototype_kernel(X)
         self.crit_K = self.prot_K if not criticism_kernel else self.criticism_kernel(X)
 
-    def select_prototypes(self, n, train_indices):
+    def select_prototypes(self, n, train_indices, proto_inds = None):
         """
         Greedily selects prototypes from the dataset using the efficient method.
 
@@ -38,18 +38,21 @@ class MMDCritic:
         Raises:
             ValueError on improper n.
         """
+        if proto_inds is not None :
+            if n + len(proto_inds) > len(self.X) or n + len(proto_inds) <= 0:
+                raise ValueError("n must satisfy 0 < n <= len(X)")
+        else:
+            if n > len(self.X) or n  <= 0:
+                raise ValueError("n must satisfy 0 < n <= len(X)")
         
-        if n > len(self.X) or n <= 0:
-            raise ValueError("n must satisfy 0 < n <= len(X)")
         
-
         if train_indices is None:
             train_indices = np.arange(len(self.X))
 
-        selected_indices = self._greedy_select_protos(self.prot_K, train_indices, n)
+        selected_indices = self._greedy_select_protos(self.prot_K, train_indices, n, proto_inds = proto_inds)
         return selected_indices
 
-    def _greedy_select_protos(self, K, candidate_indices, m):
+    def _greedy_select_protos(self, K, candidate_indices, m, proto_inds = None):
         """
         Efficiently selects prototypes using the greedy algorithm.
 
@@ -72,8 +75,12 @@ class MMDCritic:
         n = len(candidate_indices)
         colsum = 2 * np.sum(K, axis=0) / n
 
-        selected = np.array([], dtype=int)
+        if proto_inds is not None :
+            selected = proto_inds
+        else:
+            selected = np.array([], dtype=int)
 
+        
         for _ in range(m):
             candidates = np.setdiff1d(range(n), selected)
             s1array = colsum[candidates]
